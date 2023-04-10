@@ -1,0 +1,13 @@
+FROM ubuntu:latest
+ARG notification_hour
+ARG pushover_token
+ARG pushover_user
+ARG node_nickname
+ENV pushover_token $pushover_token
+ENV pushover_user $pushover_user
+ENV node_nickname $node_nickname
+ENV notification_hour $notification_hour
+RUN apt update && apt install -y cron curl bc tzdata
+RUN rm -rf /etc/cron.*/*
+# See https://blog.thesparktree.com/cron-in-docker
+RUN echo "0 $notification_hour * * * /bin/bash /scripts/rocketpool_heartbeat.sh >/proc/1/fd/1 2>/proc/1/fd/2" | crontab -

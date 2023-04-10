@@ -1,0 +1,30 @@
+# Rocketpool notification service
+# sends a daiy push notification with node health, updates available, and yield
+# author: github/actualltymentor aka mentor.eth
+
+version: "3"
+services:
+  rocketpool_daily_briefing:
+    build:
+      dockerfile: DOCKERFILE
+      args:
+        - pushover_token=${PUSHOVER_TOKEN} # Required, created at https://pushover.net/apps/build and displayed under "API Token/Key"
+        - pushover_user=${PUSHOVER_USER} # Required, found at https://pushover.net/ under "Your User Key"
+        - node_nickname=${NODE_NICKNAME:-Rocketpool} # Optional
+        - notification_hour=${NOTIFICATION_HOUR:-10}
+        - DEBIAN_FRONTEND=noninteractive # Silent apt handling
+    container_name: rocketpool_daily_briefing
+    restart: unless-stopped
+    networks:
+      - prometheus
+    volumes:
+      - ${DISK_SPACE_CONSTRAINED_PATH:-/}:/rootfs:ro # Root fs / to get diskspace usage
+      - ./scripts:/scripts:ro # Scripts to container
+      - /etc/timezone:/etc/timezone:ro # Sync container timezone to host
+      - /etc/localtime:/etc/localtime:ro # Sync container time to host
+    entrypoint: [ "/bin/bash", "/scripts/on_up.sh" ]
+
+networks:
+  prometheus:
+    name: rocketpool_monitor-net
+    external: true
